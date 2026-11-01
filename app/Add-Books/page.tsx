@@ -1,0 +1,172 @@
+"use client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useRouter } from "next/navigation";
+
+const AddBookPage = () => {
+  const router =useRouter();
+
+  const handleAddBook = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    console.log("Book Data:", data);
+
+    const res = await fetch("http://localhost:5000/books", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    // console.log("response from server" , res);
+    //   const afterSubmit = await res.json();
+    //   console.log("After submit",afterSubmit);
+
+    console.log("response from server", res);
+    const afterSubmit = await res.json();
+    console.log("After submit", afterSubmit);
+
+     if(afterSubmit.insertedId || afterSubmit.insertId || res.ok){
+        // router.push('/books')
+        router.refresh()
+      }
+  };
+  return (
+    <div className="min-h-screen bg-[#f5f8f7] px-4 py-8">
+      <Card className="mx-auto max-w-xl rounded-2xl border border-gray-200 shadow-none">
+        <CardContent className="p-6">
+          <h1 className="mb-5 text-3xl font-bold text-[#124e5d]">Add a Book</h1>
+
+          <form className="space-y-4" onSubmit={handleAddBook}>
+            {/* Book Title */}
+            <div className="space-y-1.5">
+              <Label htmlFor="title">Book Title</Label>
+              <Input
+                id="title"
+                name="title"
+                placeholder="Enter the book title"
+                required
+              />
+            </div>
+
+            {/* Author Name */}
+            <div className="space-y-1.5">
+              <Label htmlFor="author">Author Name</Label>
+              <Input
+                id="author"
+                name="author"
+                placeholder="Enter the author"
+                required
+              />
+            </div>
+
+            {/* Category and Copies */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Category</Label>
+
+                <Select name="category" defaultValue="fiction">
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="fiction">Fiction</SelectItem>
+                    <SelectItem value="non-fiction">Non-Fiction</SelectItem>
+                    <SelectItem value="science">Science</SelectItem>
+                    <SelectItem value="technology">Technology</SelectItem>
+                    <SelectItem value="history">History</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="copies">Total Copies</Label>
+                <Input
+                  id="copies"
+                  name="copies"
+                  type="number"
+                  defaultValue="1"
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Book Image */}
+            <div className="space-y-1.5">
+              <Label htmlFor="image">Book Image</Label>
+              <Input
+                id="image"
+                name="image"
+                type="file"
+                accept="image/*"
+                className="cursor-pointer file:mr-2 file:border-0 file:bg-transparent file:text-sm"
+              />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-1.5">
+              <Label htmlFor="description">Short Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                placeholder="Write a few lines about the book"
+                className="min-h-24 resize-none"
+              />
+            </div>
+
+            {/* User Information */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="userName">User Name</Label>
+                <Input
+                  id="userName"
+                  name="userName"
+                  defaultValue="Ayesha Rahman"
+                  readOnly
+                  className="bg-[#eef3f2]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  defaultValue="ayesha@example.com"
+                  readOnly
+                  className="bg-[#eef3f2]"
+                />
+              </div>
+            </div>
+
+            {/* Submit */}
+            <Button
+              type="submit"
+              className="bg-[#124e5d] font-semibold hover:bg-[#0d3d49]"
+            >
+              Add Book
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AddBookPage;
