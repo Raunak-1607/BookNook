@@ -112,7 +112,8 @@ const AddBookPage = () => {
               <Input
                 id="image"
                 name="image"
-                type="file"
+                type="text"
+                placeholder="Enter the image URL"
                 accept="image/*"
                 className="cursor-pointer file:mr-2 file:border-0 file:bg-transparent file:text-sm"
               />
