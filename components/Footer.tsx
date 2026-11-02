@@ -22,12 +22,7 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Contact */}
-        {/* <div>
-          <h3 className="mb-2 font-semibold">Contact</h3>
-          <p className="text-sm">[YOUR EMAIL]</p>
-          <p className="text-sm">[YOUR PHONE]</p>
-        </div> */}
+       
 
         {/* Social Links */}
         <div>

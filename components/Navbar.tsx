@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 const NAV_LINKS = [
     { label: "Home", href: "/" },
     { label: "All Books", href: "/All-Books" },
-    { label: "Add Books", href: "/Add-Books" }
+    { label: "Add Book", href: "/Add-Books" },
+    { label: "My Books", href: "#" },
+    { label: "My Borrows", href: "#" },
 ];
 
 const Navbar = () => {
@@ -23,7 +25,7 @@ const Navbar = () => {
                 <nav className="hidden items-center gap-6 md:flex">
                     {NAV_LINKS.map((link) => (
                         <Link
-                            key={link.href}
+                            key={link.label}
                             href={link.href}
                             className="text-sm font-medium text-foreground/75 transition-colors hover:text-foreground"
                         >
@@ -33,15 +35,22 @@ const Navbar = () => {
                 </nav>
 
                 <div className="flex items-center gap-2">
+
+                    <Link href="/Auth/Login">
+                    
                     <Button
                         variant="outline"
                         className="border-[#1a3a5c]/20 bg-transparent text-[#1a3a5c] hover:bg-[#1a3a5c]/5 hover:text-[#1a3a5c]"
                     >
                         Login
                     </Button>
+                    </Link>
+                    <Link href="/Auth/Register      ">
+                        
                     <Button className="bg-[#1a3a5c] text-white hover:bg-[#1a3a5c]/90">
                         Register
                     </Button>
+                    </Link>
                 </div>
             </div>
         </header>
