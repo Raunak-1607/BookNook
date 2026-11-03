@@ -59,7 +59,7 @@ export  default  function BookDetailsPage({
   useEffect(() => {
     if (!BooksId) return;
 
-    fetch(`http://localhost:5000/books/${BooksId}`)
+    fetch(`http://localhost:5000/books/detail/${BooksId}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && data.title) {

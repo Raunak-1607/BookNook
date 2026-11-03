@@ -56,15 +56,17 @@ const Navbar = () => {
             <Popover>
               <PopoverTrigger
                 render={
-                  <Avatar className="cursor-pointer">
-                    <AvatarImage
-                      referrerPolicy="no-referrer"
-                      src={user?.image || ""}
-                    />
-                    <AvatarFallback className="bg-[#1a3a5c] text-white">
-                      {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <button type="button" className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#1a3a5c]">
+                    <Avatar>
+                      <AvatarImage
+                        referrerPolicy="no-referrer"
+                        src={user?.image || ""}
+                      />
+                      <AvatarFallback className="bg-[#1a3a5c] text-white">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
                 }
               />
               <PopoverContent align="start">
