@@ -11,6 +11,7 @@ import {
     CarouselPrevious,
     type CarouselApi,
 } from "@/components/ui/carousel";
+import Link from "next/link";
 
 type Book = {
     title: string;
@@ -150,9 +151,11 @@ const Banner = () => {
                                     <p className="max-w-md text-[#1a3a5c]/70">
                                         {slide.description}
                                     </p>
-                                    <Button className="h-10 rounded-lg bg-[#1a3a5c] px-6 text-white hover:bg-[#1a3a5c]/90">
-                                        Browse Books
-                                    </Button>
+                                    <Link href="/All-Books">
+                                        <Button className="h-10 rounded-lg bg-[#1a3a5c] px-6 text-white hover:bg-[#1a3a5c]/90">
+                                            Browse Books
+                                        </Button>
+                                    </Link>
                                 </div>
                                 <BookFan books={slide.books} />
                             </div>

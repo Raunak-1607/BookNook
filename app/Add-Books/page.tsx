@@ -12,9 +12,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 const AddBookPage = () => {
   const router =useRouter();
+  const { data: session } = authClient.useSession();
+    const user = session?.user;
 
   const handleAddBook = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -137,7 +140,7 @@ const AddBookPage = () => {
                 <Input
                   id="userName"
                   name="userName"
-                  defaultValue="Ayesha Rahman"
+                  defaultValue={user?.name}
                   readOnly
                   className="bg-[#eef3f2]"
                 />
@@ -149,7 +152,7 @@ const AddBookPage = () => {
                   id="email"
                   name="email"
                   type="email"
-                  defaultValue="ayesha@example.com"
+                  defaultValue={user?.email}
                   readOnly
                   className="bg-[#eef3f2]"
                 />

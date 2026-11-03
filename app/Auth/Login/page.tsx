@@ -1,7 +1,34 @@
+
+"use client"
 import React from 'react';
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
+  const router = useRouter();
+
+    const handleLogin = async(e: React.FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const books = Object.fromEntries(formData.entries()) as {
+                email: string;
+                password: string;
+            };
+
+            const {data, error} = await authClient.signIn.email({
+                ...books,
+               
+            })
+
+            if (data){
+               router.push('/')
+            }
+
+            if (error){
+                console.log(error);
+            }
+    }
     return (
       <main className="flex min-h-[85vh] items-center justify-center bg-[#f5f8f7] px-4 py-8">
 
@@ -13,7 +40,7 @@ const LoginPage = () => {
           Login
         </h1>
 
-        <form className="space-y-5">
+        <form className="space-y-5" onSubmit={handleLogin}>
 
           {/* Email */}
           <div>
@@ -56,7 +83,7 @@ const LoginPage = () => {
          
           {/* Login Button */}
           <button
-            type="button"
+            type="submit"
             className="h-[55px] w-full rounded-xl bg-[#104e5b] text-lg font-bold text-white transition duration-300 hover:bg-[#0b414d]"
           >
             Login

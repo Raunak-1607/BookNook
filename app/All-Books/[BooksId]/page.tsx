@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { authClient } from "@/lib/auth-client";
 
 type Book = {
   _id: string;
@@ -50,6 +51,9 @@ export  default  function BookDetailsPage({
   const [book, setBook] = useState<Book>(SAMPLE_BOOK);
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: session } = authClient.useSession();
+    const user = session?.user;
 
   // Fetch book from backend if available
   useEffect(() => {
@@ -226,7 +230,7 @@ export  default  function BookDetailsPage({
                       <Input
                         id="userName"
                         name="userName"
-                        defaultValue="Ayesha Rahman"
+                        defaultValue={user?.name}
                         readOnly
                         className="h-11 rounded-lg border-0 bg-[#eef3f2] px-3.5 text-sm text-gray-800 focus-visible:ring-0 cursor-default"
                       />
@@ -244,7 +248,7 @@ export  default  function BookDetailsPage({
                         id="email"
                         name="email"
                         type="email"
-                        defaultValue="ayesha@example.com"
+                        defaultValue={user?.email}
                         readOnly
                         className="h-11 rounded-lg border-0 bg-[#eef3f2] px-3.5 text-sm text-gray-800 focus-visible:ring-0 cursor-default"
                       />

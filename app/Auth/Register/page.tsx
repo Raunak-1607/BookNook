@@ -1,8 +1,38 @@
 // import { Link } from 'lucide-react';
+"use client"
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import React from 'react';
 
 const RegisterPage = () => {
+
+    const handleRegister = async(e: React.FormEvent<HTMLFormElement>) => {
+                e.preventDefault();
+
+            const formData = new FormData(e.currentTarget);
+            const books = Object.fromEntries(formData.entries()) as {
+                name: string;
+                email: string;
+                password: string;
+            };
+
+            console.log("User Data:" , books);
+
+            const { data , error} = await authClient.signUp.email({
+                  ...books
+            })
+
+            if(data){
+                console.log(data);
+            }
+
+            if(error){
+                console.log(error);
+            }
+
+             
+
+    }
     return (
          <main className="flex min-h-[85vh] items-center justify-center bg-[#f5f8f7] px-4 py-8">
 
@@ -13,7 +43,7 @@ const RegisterPage = () => {
           Register
         </h1>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleRegister}>
 
           {/* Name */}
           <div>
@@ -46,7 +76,7 @@ const RegisterPage = () => {
           </div>
 
           {/* Photo URL */}
-          <div>
+          {/* <div>
             <label htmlFor="photoURL" className="mb-2 block font-medium text-[#172b30]">
               Photo URL
             </label>
@@ -57,7 +87,7 @@ const RegisterPage = () => {
               placeholder="https://"
               className="h-[52px] w-full rounded-xl border border-[#d5dfdc] px-3 text-base outline-none transition focus:border-[#104e5b] focus:ring-1 focus:ring-[#104e5b]"
             />
-          </div>
+          </div> */}
 
           {/* Password */}
           <div>
@@ -80,13 +110,13 @@ const RegisterPage = () => {
 
           {/* Register Button */}
           <button
-            type="button"
+            type="submit"
             className="h-[50px] w-full rounded-xl bg-[#104e5b] text-base font-bold text-white transition hover:bg-[#0b414d]"
           >
             Register
           </button>
 
-          {/* Google Button */}
+
           <button
             type="button"
             className="h-[52px] w-full rounded-xl border-2 border-[#104e5b] bg-white text-base font-bold text-[#104e5b] transition hover:bg-[#f0f6f4]"
@@ -94,8 +124,8 @@ const RegisterPage = () => {
             <span className="mr-2 text-xl font-bold">G</span>
             Continue with Google
           </button>
-
         </form>
+          {/* Google Button */}
 
         {/* Login Link */}
        <p className="mt-4 text-center text-sm text-[#65767b]">
