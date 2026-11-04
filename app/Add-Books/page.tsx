@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 const AddBookPage = () => {
@@ -42,9 +42,10 @@ const AddBookPage = () => {
     const afterSubmit = await res.json();
     console.log("After submit", afterSubmit);
 
-     if(afterSubmit.insertedId || afterSubmit.insertId || res.ok){
+     if(afterSubmit.insertedId > 0 || afterSubmit.insertId || res.ok){
         // router.push('/books')
-        router.refresh()
+        router.refresh();
+        redirect('/All-Books');
       }
   };
   return (

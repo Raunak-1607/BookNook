@@ -62,8 +62,8 @@ const EditBooks = ({ book }: { book: BookType }) => {
             <Pencil></Pencil>Edit
           </Button>
         </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader className="flex flex-col items-start gap-4 ">
             <DialogTitle className="mb-5 text-3xl font-bold text-[#124e5d]">
               Edit Book
             </DialogTitle>

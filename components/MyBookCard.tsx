@@ -4,6 +4,7 @@ import Link from "next/link";
 import React from "react";
 import EditBooks from "./EditBooks";
 import { Button } from "./ui/button";
+import DeleteBooks from "./DeleteBooks";
 
 interface MyBookCardProps {
   book: BookType;
@@ -59,12 +60,7 @@ const MyBookCardPage = ({ book }: MyBookCardProps) => {
       <div className="flex items-center gap-2">
        <EditBooks book={book}></EditBooks>
 
-        <Button
-          
-          variant="destructive"
-        >
-          Delete
-        </Button>
+        <DeleteBooks book={book} />
       </div>
     </div>
   );
