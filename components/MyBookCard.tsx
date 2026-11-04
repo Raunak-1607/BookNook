@@ -1,6 +1,9 @@
 import { BookType } from "@/lib/Type/Type";
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
+import EditBooks from "./EditBooks";
+import { Button } from "./ui/button";
 
 interface MyBookCardProps {
   book: BookType;
@@ -54,19 +57,14 @@ const MyBookCardPage = ({ book }: MyBookCardProps) => {
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="rounded-xl border-2 border-[#104e5b] px-4 py-2 font-semibold text-[#104e5b] transition hover:bg-[#104e5b] hover:text-white"
-        >
-          Edit
-        </button>
+       <EditBooks book={book}></EditBooks>
 
-        <button
-          type="button"
-          className="rounded-xl bg-red-800 px-4 py-2 font-semibold text-white transition hover:bg-red-900"
+        <Button
+          
+          variant="destructive"
         >
           Delete
-        </button>
+        </Button>
       </div>
     </div>
   );
