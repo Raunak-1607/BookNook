@@ -29,6 +29,12 @@ const LoginPage = () => {
                 console.log(error);
             }
     }
+
+    const GoogleSignIn = async () => {
+  const data = await authClient.signIn.social({
+    provider: "google",
+  });
+};
     return (
       <main className="flex min-h-[85vh] items-center justify-center bg-[#f5f8f7] px-4 py-8">
 
@@ -92,6 +98,7 @@ const LoginPage = () => {
           {/* Google Button */}
           <button
             type="button"
+            onClick={GoogleSignIn}
             className="h-[58px] w-full rounded-xl border-2 border-[#104e5b] bg-white text-lg font-bold text-[#104e5b] transition duration-300 hover:bg-[#f0f6f4]"
           >
             <span className="mr-2 text-xl font-bold">G</span>
