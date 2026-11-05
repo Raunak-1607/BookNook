@@ -23,7 +23,20 @@ const AddBookPage = () => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const data = Object.fromEntries(formData.entries());
+    const rawData = Object.fromEntries(formData.entries());
+    const copies = Number(rawData.copies);
+
+    if (!Number.isInteger(copies) || copies < 1) {
+      return;
+    }
+
+    // FormData values are strings. Store inventory counts as MongoDB numbers so
+    // the backend can safely use $gt and $inc when a book is borrowed.
+    const data = {
+      ...rawData,
+      copies,
+      totalCopies: copies,
+    };
 
     console.log("Book Data:", data);
 

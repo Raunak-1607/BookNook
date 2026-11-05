@@ -9,22 +9,26 @@ export interface BookCardProps {
     title: string;
     author: string;
     category: string;
-    image: string;
+    image?: string | null;
   };
 }
 
 export default function BookCard({ book }: BookCardProps) {
+  const imageSrc = book.image?.trim();
+
   return (
     <Card className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
 
       {/* Book Image */}
       <div className="relative h-44 w-full overflow-hidden rounded-lg bg-[#125361]">
-        <Image
-          src={book.image}
-          alt={book.title}
-          fill
-          className="object-cover"
-        />
+        {imageSrc && (
+          <Image
+            src={imageSrc}
+            alt={book.title}
+            fill
+            className="object-cover"
+          />
+        )}
 
         {/* Title Overlay */}
         <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/50 to-transparent p-3">

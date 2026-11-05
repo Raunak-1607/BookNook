@@ -30,7 +30,17 @@ const EditBooks = ({ book }: { book: BookType }) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const data = Object.fromEntries(formData.entries());
+    const rawData = Object.fromEntries(formData.entries());
+    const copies = Number(rawData.copies);
+
+    if (!Number.isInteger(copies) || copies < 1) {
+      return;
+    }
+
+    const data = {
+      ...rawData,
+      copies,
+    };
 
     console.log("Book Data:", data);
 

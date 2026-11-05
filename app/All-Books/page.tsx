@@ -1,6 +1,10 @@
 import BookCard, { BookCardProps } from '@/components/BookCard';
 import React from 'react';
 
+// The books API is intentionally read at request time. This route may wait for
+// the Express API, rather than requiring it to be part of Next's static shell.
+export const instant = false;
+
 const AllBooksPage = async () => {
 
 

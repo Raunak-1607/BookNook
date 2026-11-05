@@ -4,7 +4,6 @@ import React, { use, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-// Shadcn UI components directly from components/ui
 import {
   Dialog,
   DialogContent,
@@ -13,65 +12,93 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
+// import { toast } from "@/components/ui/toast";
+import { toast } from "react-toastify";
 
 type Book = {
   _id: string;
   title: string;
   author: string;
   category: string;
+  totalCopies: number;
   copies: number;
   description: string;
   image?: string;
 };
 
-// Fallback book matching the screenshot if backend is offline or for demonstration
 const SAMPLE_BOOK: Book = {
   _id: "book-quiet-orchard",
   title: "The Quiet Orchard",
   author: "Mira Hossain",
   category: "Fiction",
+  totalCopies: 6,
   copies: 3,
   description:
-    "A heartwarming story exploring the hidden lives of an old village grove and the people who tend to it. When an unexpected visitor arrives, old secrets surface, challenging memories and bringing long-awaited redemption and finds what they had lost.",
+    "A heartwarming story exploring the hidden lives of an old village grove and the people who tend to it.",
   image: "",
 };
 
-export  default  function BookDetailsPage({
+export default function BookDetailsPage({
   params,
 }: {
   params: Promise<{ BooksId: string }>;
 }) {
-  const { BooksId } = use(params) ;
+  const { BooksId } = use(params);
+
+  const { data: session, isPending } = authClient.useSession();
+  const user = session?.user;
 
   const [book, setBook] = useState<Book>(SAMPLE_BOOK);
   const [open, setOpen] = useState(false);
+  // const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [availableCopies, setAvailableCopies] = useState(book.copies);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: session } = authClient.useSession();
-    const user = session?.user;
-
-  // Fetch book from backend if available
+  // Fetch Book Details
+ // Fetch Book Details
   useEffect(() => {
     if (!BooksId) return;
 
-    fetch(`http://localhost:5000/books/detail/${BooksId}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.title) {
-          setBook(data);
+    const fetchBook = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/books/detail/${BooksId}`,
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch book details");
         }
-      })
-      .catch((err) => {
-        console.info("Backend offline, displaying demo book:", err);
-      });
+
+        const data = await res.json();
+
+        if (data && data.title) {
+          const copies = Number(data.copies) || 0;
+          const totalCopies = Number(data.totalCopies ?? data.copies) || 0;
+
+          setBook({
+            ...data,
+            totalCopies,
+            copies,
+          });
+          setAvailableCopies(copies);
+        }
+      } catch (error) {
+        console.error("Book fetching error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBook();
   }, [BooksId]);
 
-  // Handle borrow book submission
   const handleBorrow = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
@@ -85,10 +112,8 @@ export  default  function BookDetailsPage({
       borrowDate: new Date().toISOString(),
     };
 
-    console.log("Borrow Request Data:", borrowData);
-
     try {
-      const res = await fetch("http://localhost:5000/borrow", {
+      const res = await fetch("http://localhost:5000/borrowed-books", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -96,39 +121,60 @@ export  default  function BookDetailsPage({
         body: JSON.stringify(borrowData),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        console.log("Book borrowed successfully!");
+        const remainingCopies = Math.max(0, availableCopies - 1);
+
+        toast.success("Book borrowed successfully!");
+        // Keep the displayed availability and the borrow button in sync.
+        setAvailableCopies(remainingCopies);
+        setBook((currentBook) => ({
+          ...currentBook,
+          copies: remainingCopies,
+        }));
+      } else {
+        toast.error(data.error || "Failed to borrow book");
       }
     } catch (error) {
       console.warn("Backend not reached:", error);
+      toast.error("Something went wrong.");
     } finally {
       setIsSubmitting(false);
       setOpen(false);
     }
   };
+  if (isLoading || isPending) {
+    return (
+      <div className="min-h-[calc(100vh-140px)] flex items-center justify-center bg-[#f5f8f7]">
+        <p className="text-[#104e5b] font-semibold">Loading book details...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-140px)] bg-[#f5f8f7] px-4 py-8 sm:px-6 lg:px-8">
       <main className="mx-auto max-w-[1100px]">
-        {/* Breadcrumb Navigation */}
+        {/* Breadcrumb */}
         <nav className="mb-5 flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="hover:text-[#104e5b] transition-colors">
+          <Link href="/" className="hover:text-[#104e5b]">
             Home
           </Link>
+
           <span>/</span>
-          <Link
-            href="/All-Books"
-            className="hover:text-[#104e5b] transition-colors"
-          >
+
+          <Link href="/All-Books" className="hover:text-[#104e5b]">
             All Books
           </Link>
+
           <span>/</span>
+
           <span className="font-semibold text-[#104e5b]">{book.title}</span>
         </nav>
 
         {/* Book Details Container */}
         <div className="grid gap-8 rounded-2xl border border-gray-200 bg-white p-6 md:grid-cols-[300px_1fr] md:gap-10 md:p-8">
-          {/* Left: Book Cover */}
+          {/* Book Cover */}
           <div className="relative flex aspect-[3/4] w-full flex-col justify-end overflow-hidden rounded-xl bg-[#104e5b] p-6 shadow-xs">
             {book.image && (
               <Image
@@ -141,18 +187,16 @@ export  default  function BookDetailsPage({
               />
             )}
 
-            {/* Gradient Overlay for Title */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-            {/* Book Title on Cover */}
             <h2 className="relative z-10 text-2xl font-bold leading-snug text-white">
               {book.title}
             </h2>
           </div>
 
-          {/* Right: Book Information */}
+          {/* Book Information */}
           <div className="flex flex-col justify-center">
-            {/* Category Badge */}
+            {/* Category */}
             <div>
               <Badge className="bg-[#e5f3f0] px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#104e5b] hover:bg-[#e5f3f0]">
                 {book.category}
@@ -163,24 +207,25 @@ export  default  function BookDetailsPage({
             <h1 className="mt-3 text-3xl font-bold text-[#104e5b] md:text-4xl">
               {book.title}
             </h1>
+
             <p className="mt-1 text-base text-gray-500">by {book.author}</p>
 
-            {/* Copies Stat Cards */}
+            {/* Copies Information */}
             <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
               {/* Total Copies */}
               <div className="rounded-xl border border-gray-200 bg-white p-4">
-                <p className="text-xs font-medium text-gray-500">Total Copies</p>
+                <p className="text-xs font-medium text-gray-500">
+                  Total Copies
+                </p>
+
                 <h3 className="mt-1 text-xl font-bold text-gray-800">
-                  {book.copies}
+                  {book.totalCopies}
                 </h3>
               </div>
 
               {/* Available Copies */}
-              <div className="rounded-xl bg-[#e5f3f0] p-4">
-                <p className="text-xs font-medium text-gray-600">Available now</p>
-                <h3 className="mt-1 text-xl font-bold text-[#104e5b]">
-                  {book.copies} copies
-                </h3>
+              <div className="font-semibold text-blue-600">
+                Available now: {availableCopies} copies
               </div>
             </div>
 
@@ -191,17 +236,17 @@ export  default  function BookDetailsPage({
               </p>
             </div>
 
-            {/* Borrow Action with Shadcn Dialog */}
+            {/* Borrow Dialog */}
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger
                   render={
                     <Button
                       type="button"
-                      disabled={book.copies <= 0}
+                      disabled={availableCopies <= 0 || !user}
                       className="h-11 rounded-lg bg-[#b68339] px-6 text-sm font-bold tracking-wider text-white uppercase hover:bg-[#a1712c] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {book.copies > 0
+                      {availableCopies > 0
                         ? "BORROW THIS BOOK"
                         : "CURRENTLY UNAVAILABLE"}
                     </Button>
@@ -227,10 +272,11 @@ export  default  function BookDetailsPage({
                       >
                         User Name
                       </Label>
+
                       <Input
                         id="userName"
                         name="userName"
-                        defaultValue={user?.name}
+                        value={user?.name || ""}
                         readOnly
                         className="h-11 rounded-lg border-0 bg-[#eef3f2] px-3.5 text-sm text-gray-800 focus-visible:ring-0 cursor-default"
                       />
@@ -244,11 +290,12 @@ export  default  function BookDetailsPage({
                       >
                         Email
                       </Label>
+
                       <Input
                         id="email"
                         name="email"
                         type="email"
-                        defaultValue={user?.email}
+                        value={user?.email || ""}
                         readOnly
                         className="h-11 rounded-lg border-0 bg-[#eef3f2] px-3.5 text-sm text-gray-800 focus-visible:ring-0 cursor-default"
                       />
@@ -258,8 +305,8 @@ export  default  function BookDetailsPage({
                     <div className="flex items-center gap-3 pt-3">
                       <Button
                         type="submit"
-                        disabled={isSubmitting}
-                        className="h-10 rounded-lg bg-[#104e5b] px-5 text-sm font-semibold text-white hover:bg-[#0c3e49] transition-colors"
+                        disabled={isSubmitting || availableCopies <= 0}
+                        className="h-10 rounded-lg bg-[#104e5b] px-5 text-sm font-semibold text-white hover:bg-[#0c3e49]"
                       >
                         {isSubmitting ? "Borrowing..." : "Confirm Borrow"}
                       </Button>
@@ -269,7 +316,8 @@ export  default  function BookDetailsPage({
                           <Button
                             type="button"
                             variant="outline"
-                            className="h-10 rounded-lg border border-[#104e5b] bg-white px-5 text-sm font-semibold text-[#104e5b] hover:bg-[#104e5b]/5 transition-colors"
+                            disabled={isSubmitting}
+                            className="h-10 rounded-lg border border-[#104e5b] bg-white px-5 text-sm font-semibold text-[#104e5b] hover:bg-[#104e5b]/5"
                           >
                             Cancel
                           </Button>
