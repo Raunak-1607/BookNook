@@ -15,9 +15,9 @@ import { redirect, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 const AddBookPage = () => {
-  const router =useRouter();
+  const router = useRouter();
   const { data: session } = authClient.useSession();
-    const user = session?.user;
+  const user = session?.user;
 
   const handleAddBook = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,6 +36,7 @@ const AddBookPage = () => {
       ...rawData,
       copies,
       totalCopies: copies,
+      createdAt: new Date().toISOString(),
     };
 
     console.log("Book Data:", data);
@@ -55,11 +56,11 @@ const AddBookPage = () => {
     const afterSubmit = await res.json();
     console.log("After submit", afterSubmit);
 
-     if(afterSubmit.insertedId > 0 || afterSubmit.insertId || res.ok){
-        // router.push('/books')
-        router.refresh();
-        redirect('/All-Books');
-      }
+    if (afterSubmit.insertedId > 0 || afterSubmit.insertId || res.ok) {
+      // router.push('/books')
+      router.refresh();
+      redirect("/All-Books");
+    }
   };
   return (
     <div className="min-h-screen bg-[#f5f8f7] px-4 py-8">

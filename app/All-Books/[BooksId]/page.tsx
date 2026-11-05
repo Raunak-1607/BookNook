@@ -107,6 +107,9 @@ export default function BookDetailsPage({
     const borrowData = {
       bookId: book._id,
       bookTitle: book.title,
+      bookAuthor: book.author,
+      bookCategory: book.category,
+      bookImage: book.image,
       userName: formData.get("userName"),
       email: formData.get("email"),
       borrowDate: new Date().toISOString(),
