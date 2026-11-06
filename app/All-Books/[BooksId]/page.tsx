@@ -20,6 +20,10 @@ import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 // import { toast } from "@/components/ui/toast";
 import { toast } from "react-toastify";
+import { GetTokenFromClient } from "@/lib/GetTokenFromClient";
+import { BACKEND_URL } from "@/lib/api";
+// import { auth } from "@/lib/auth";
+// import { headers } from "next/headers";
 
 type Book = {
   _id: string;
@@ -62,18 +66,33 @@ export default function BookDetailsPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch Book Details
- // Fetch Book Details
   useEffect(() => {
     if (!BooksId) return;
 
     const fetchBook = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:5000/books/detail/${BooksId}`,
-        );
+        const token = await GetTokenFromClient().catch(() => "");
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        let res = await fetch(`${BACKEND_URL}/books/detail/${BooksId}`, {
+          headers,
+        });
+
+        // Fallback in case endpoint without /detail is used
+        if (!res.ok && res.status === 404) {
+          res = await fetch(`${BACKEND_URL}/books/${BooksId}`, {
+            headers,
+          });
+        }
 
         if (!res.ok) {
-          throw new Error("Failed to fetch book details");
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(
+            errData.error || `Failed to fetch book details (${res.status})`,
+          );
         }
 
         const data = await res.json();
@@ -101,52 +120,61 @@ export default function BookDetailsPage({
 
   const handleBorrow = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // Get form data before the first await
+    const formData = new FormData(event.currentTarget);
+
     setIsSubmitting(true);
 
-    const formData = new FormData(event.currentTarget);
-    const borrowData = {
-      bookId: book._id,
-      bookTitle: book.title,
-      bookAuthor: book.author,
-      bookCategory: book.category,
-      bookImage: book.image,
-      userName: formData.get("userName"),
-      email: formData.get("email"),
-      borrowDate: new Date().toISOString(),
-    };
-
     try {
-      const res = await fetch("http://localhost:5000/borrowed-books", {
+      const jwtToken = await GetTokenFromClient();
+
+      const borrowData = {
+        bookId: book._id,
+        bookTitle: book.title,
+        bookAuthor: book.author,
+        bookCategory: book.category,
+        bookImage: book.image,
+        userName: formData.get("userName"),
+        email: formData.get("email"),
+        borrowDate: new Date().toISOString(),
+      };
+
+      const res = await fetch(`${BACKEND_URL}/borrowed-books`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${jwtToken}`,
         },
         body: JSON.stringify(borrowData),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        const remainingCopies = Math.max(0, availableCopies - 1);
-
-        toast.success("Book borrowed successfully!");
-        // Keep the displayed availability and the borrow button in sync.
-        setAvailableCopies(remainingCopies);
-        setBook((currentBook) => ({
-          ...currentBook,
-          copies: remainingCopies,
-        }));
-      } else {
-        toast.error(data.error || "Failed to borrow book");
+      if (!res.ok) {
+        toast.error(data.error || data.message || "Failed to borrow book");
+        return;
       }
+
+      const remainingCopies = Math.max(0, availableCopies - 1);
+
+      setAvailableCopies(remainingCopies);
+
+      setBook((currentBook) => ({
+        ...currentBook,
+        copies: remainingCopies,
+      }));
+
+      toast.success("Book borrowed successfully!");
+      setOpen(false);
     } catch (error) {
-      console.warn("Backend not reached:", error);
+      console.error("Borrow error:", error);
       toast.error("Something went wrong.");
     } finally {
       setIsSubmitting(false);
-      setOpen(false);
     }
   };
+
   if (isLoading || isPending) {
     return (
       <div className="min-h-[calc(100vh-140px)] flex items-center justify-center bg-[#f5f8f7]">
@@ -222,13 +250,18 @@ export default function BookDetailsPage({
                 </p>
 
                 <h3 className="mt-1 text-xl font-bold text-gray-800">
-                  {book.totalCopies}
+                  {availableCopies}
                 </h3>
               </div>
 
               {/* Available Copies */}
-              <div className="font-semibold text-blue-600">
-                Available now: {availableCopies} copies
+
+              <div className="inline-flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 px-4 py-2">
+                <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                <span className="text-sm font-medium text-green-700">
+                  Available now:{" "}
+                  <span className="font-bold">{availableCopies}</span> copies
+                </span>
               </div>
             </div>
 

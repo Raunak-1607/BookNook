@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
+import { toast } from "react-toastify";
 
 import {
   Popover,
@@ -34,9 +35,19 @@ const Navbar = () => {
     (link) => !link.isPrivate || Boolean(user)
   );
 
+  const handleSignOut = async () => {
+    const { error } = await authClient.signOut();
+    if (error) {
+      toast.error(error.message || "Unable to sign out.");
+      return;
+    }
+
+    toast.success("Signed out successfully.");
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6">
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
@@ -47,7 +58,7 @@ const Navbar = () => {
         </Link>
 
         {/* Navigation Links */}
-        <nav className="hidden items-center gap-2 md:flex">
+        <nav className="order-3 flex w-full gap-1 overflow-x-auto pb-1 md:order-none md:w-auto md:pb-0">
           {visibleLinks.map((link) => {
             const isActive = pathname === link.href;
 
@@ -102,7 +113,7 @@ const Navbar = () => {
                     <Button
                       className="mt-2 w-full"
                       variant="destructive"
-                      onClick={() => authClient.signOut()}
+                      onClick={handleSignOut}
                     >
                       Sign Out
                     </Button>

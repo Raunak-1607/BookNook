@@ -6,6 +6,8 @@ import { BookOpenCheck, RotateCcw } from "lucide-react";
 import { toast } from "react-toastify";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { GetTokenFromClient } from "@/lib/GetTokenFromClient";
+import { BACKEND_URL } from "@/lib/api";
 
 type BorrowRecord = {
   _id: string;
@@ -50,7 +52,7 @@ async function addBookDetails(
 
       try {
         const bookResponse = await fetch(
-          `http://localhost:5000/books/detail/${record.bookId}`,
+          `${BACKEND_URL}/books/detail/${record.bookId}`,
         );
         const book: BookDetails = bookResponse.ok
           ? await bookResponse.json()
@@ -84,7 +86,12 @@ export default function MyBorrowsPage() {
 
     let isCurrentRequest = true;
 
-    fetch(`http://localhost:5000/borrowed-books/${encodeURIComponent(email)}`)
+    GetTokenFromClient()
+      .then((token) =>
+        fetch(`${BACKEND_URL}/borrowed-books/${encodeURIComponent(email)}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }),
+      )
       .then(async (response) => {
         if (!response.ok) {
           throw new Error("Could not load borrowed books.");
@@ -111,16 +118,24 @@ export default function MyBorrowsPage() {
   }, [email]);
 
   const handleReturn = async (borrowedBook: BorrowedBook) => {
+    const token = await GetTokenFromClient().catch(() => "");
     if (!email || returningId) return;
 
     setReturningId(borrowedBook._id);
 
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(
-        `http://localhost:5000/borrowed-books/${borrowedBook._id}/return`,
+        `${BACKEND_URL}/borrowed-books/${borrowedBook._id}/return`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({ email }),
         },
       );

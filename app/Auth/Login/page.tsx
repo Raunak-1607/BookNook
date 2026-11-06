@@ -4,6 +4,7 @@ import React from 'react';
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from 'next/navigation';
+import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -21,19 +22,23 @@ const LoginPage = () => {
                
             })
 
-            if (data){
-               router.push('/')
+            if (error){
+                toast.error(error.message || "Unable to sign in.");
+                return;
             }
 
-            if (error){
-                console.log(error);
+            if (data){
+               toast.success("Signed in successfully.");
+               router.push('/')
+               router.refresh();
             }
     }
 
     const GoogleSignIn = async () => {
-  const data = await authClient.signIn.social({
+  const { error } = await authClient.signIn.social({
     provider: "google",
   });
+  if (error) toast.error(error.message || "Unable to start Google sign-in.");
 };
     return (
       <main className="flex min-h-[85vh] items-center justify-center bg-[#f5f8f7] px-4 py-8">
@@ -42,7 +47,7 @@ const LoginPage = () => {
       <div className="w-full max-w-[594px] rounded-[20px] border border-[#e0e7e4] bg-white p-6 shadow-sm sm:p-10">
 
         {/* Heading */}
-        <h1 className="mb-5 text-4xl font-bold text-[#104e5b]">
+        <h1 className="mb-5 text-3xl font-bold text-[#104e5b] sm:text-4xl">
           Login
         </h1>
 

@@ -3,8 +3,11 @@
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import React from "react";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 const RegisterPage = () => {
+  const router = useRouter();
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -15,31 +18,31 @@ const RegisterPage = () => {
       password: string;
     };
 
-    console.log("User Data:", books);
-
     const { data, error } = await authClient.signUp.email({
       ...books,
     });
 
     if (data) {
-      console.log(data);
+      toast.success("Account created successfully. Please sign in.");
+      router.push("/Auth/Login");
     }
 
     if (error) {
-      console.log(error);
+      toast.error(error.message || "Unable to create your account.");
     }
   };
 
   const GoogleSignUn = async () => {
-    const data = await authClient.signIn.social({
+    const { error } = await authClient.signIn.social({
       provider: "google",
     });
+    if (error) toast.error(error.message || "Unable to start Google sign-in.");
   };
   return (
     <main className="flex min-h-[85vh] items-center justify-center bg-[#f5f8f7] px-4 py-8">
       <div className="w-full max-w-[534px] rounded-[20px] border border-[#e0e7e4] bg-white p-6 shadow-sm sm:p-9">
         {/* Heading */}
-        <h1 className="mb-5 text-4xl font-bold text-[#104e5b]">Register</h1>
+        <h1 className="mb-5 text-3xl font-bold text-[#104e5b] sm:text-4xl">Register</h1>
 
         <form className="space-y-4" onSubmit={handleRegister}>
           {/* Name */}

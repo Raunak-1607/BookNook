@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import BookCard, { type BookCardProps } from "@/components/BookCard";
+import { BACKEND_URL } from "@/lib/api";
 
 type Book = BookCardProps["book"] & {
   createdAt?: string;
@@ -16,26 +17,36 @@ export default function RecentBooks() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const res = await fetch("http://localhost:5000/books");
-        const data: Book[] = await res.json();
+        const res = await fetch(`${BACKEND_URL}/books`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch books: ${res.status}`);
+        }
+        const data = await res.json();
 
-        // Sort newest books first
-        const recentBooks = data
-          .sort((a, b) => {
-            const dateA = Date.parse(a.createdAt || "") ||
-              parseInt(a._id.slice(0, 8), 16) * 1000;
+        if (Array.isArray(data)) {
+          // Sort newest books first
+          const recentBooks = [...data]
+            .sort((a, b) => {
+              const dateA =
+                Date.parse(a.createdAt || "") ||
+                (a._id && a._id.length >= 8
+                  ? parseInt(a._id.slice(0, 8), 16) * 1000
+                  : 0);
 
-            const dateB = Date.parse(b.createdAt || "") ||
-              parseInt(b._id.slice(0, 8), 16) * 1000;
+              const dateB =
+                Date.parse(b.createdAt || "") ||
+                (b._id && b._id.length >= 8
+                  ? parseInt(b._id.slice(0, 8), 16) * 1000
+                  : 0);
 
-            return dateB - dateA;
-          })
-          .slice(0, 7);
+              return dateB - dateA;
+            })
+            .slice(0, 7);
 
-        setBooks(recentBooks);
-
+          setBooks(recentBooks);
+        }
       } catch (error) {
-        console.log(error);
+        console.error("Failed to load recent books:", error);
       } finally {
         setLoading(false);
       }

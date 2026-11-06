@@ -9,7 +9,7 @@ import {
 export default function Footer() {
   return (
     <footer className="w-full bg-[#104e5b] text-white">
-      <div className="mx-auto flex justify-between max-w-[1200px] gap-8 px-6 py-8 ">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-8 px-6 py-8 sm:flex-row sm:justify-between">
         {/* Logo and Description */}
         <div>
           <div className="mb-2 flex items-center gap-2">

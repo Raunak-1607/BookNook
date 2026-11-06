@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,27 +12,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { GetTokenFromClient } from "@/lib/GetTokenFromClient";
+import { toast } from "react-toastify";
+import { BACKEND_URL } from "@/lib/api";
 
 const AddBookPage = () => {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const user = session?.user;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAddBook = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  
+const handleAddBook = async (
+  event: React.FormEvent<HTMLFormElement>
+) => {
+  event.preventDefault();
 
-    const formData = new FormData(event.currentTarget);
+  // Capture form and data before await
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+
+  setIsSubmitting(true);
+
+  try {
+    const jwtToken = await GetTokenFromClient();
+
     const rawData = Object.fromEntries(formData.entries());
     const copies = Number(rawData.copies);
 
     if (!Number.isInteger(copies) || copies < 1) {
+      toast.error("Copies must be a whole number of at least 1.");
       return;
     }
 
-    // FormData values are strings. Store inventory counts as MongoDB numbers so
-    // the backend can safely use $gt and $inc when a book is borrowed.
     const data = {
       ...rawData,
       copies,
@@ -39,29 +54,39 @@ const AddBookPage = () => {
       createdAt: new Date().toISOString(),
     };
 
-    console.log("Book Data:", data);
-
-    const res = await fetch("http://localhost:5000/books", {
+    const response = await fetch(`${BACKEND_URL}/books`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${jwtToken}`,
       },
       body: JSON.stringify(data),
     });
-    // console.log("response from server" , res);
-    //   const afterSubmit = await res.json();
-    //   console.log("After submit",afterSubmit);
 
-    console.log("response from server", res);
-    const afterSubmit = await res.json();
-    console.log("After submit", afterSubmit);
+    const result = await response.json();
 
-    if (afterSubmit.insertedId > 0 || afterSubmit.insertId || res.ok) {
-      // router.push('/books')
-      router.refresh();
-      redirect("/All-Books");
+    if (!response.ok) {
+      throw new Error(result.error || "Could not add this book.");
     }
-  };
+
+    toast.success("Book added successfully.");
+
+    form.reset();
+
+    router.push("/All-Books");
+    router.refresh();
+
+  } catch (error) {
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Could not add this book."
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
   return (
     <div className="min-h-screen bg-[#f5f8f7] px-4 py-8">
       <Card className="mx-auto max-w-xl rounded-2xl border border-gray-200 shadow-none">
@@ -92,7 +117,7 @@ const AddBookPage = () => {
             </div>
 
             {/* Category and Copies */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Category</Label>
 
@@ -149,7 +174,7 @@ const AddBookPage = () => {
             </div>
 
             {/* User Information */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="userName">User Name</Label>
                 <Input
@@ -177,9 +202,10 @@ const AddBookPage = () => {
             {/* Submit */}
             <Button
               type="submit"
+              disabled={isSubmitting}
               className="bg-[#124e5d] font-semibold hover:bg-[#0d3d49]"
             >
-              Add Book
+              {isSubmitting ? "Adding..." : "Add Book"}
             </Button>
           </form>
         </CardContent>

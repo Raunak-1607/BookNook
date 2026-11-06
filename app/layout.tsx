@@ -1,19 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-  import { ToastContainer, toast } from 'react-toastify';
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "BookNook",
@@ -24,17 +14,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en" data-theme="light"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col">
-        
-        <Navbar></Navbar>
+        <Suspense fallback={<div className="h-16 w-full border-b border-border bg-background" />}>
+          <Navbar />
+        </Suspense>
         <div className="flex-1">
         {children}
         </div>
-        <Footer></Footer>
-        <ToastContainer />
-        </body>
+        <Footer />
+        <ToastContainer position="top-right" autoClose={3000} />
+      </body>
     </html>
   );
 }
