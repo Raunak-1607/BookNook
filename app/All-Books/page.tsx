@@ -2,6 +2,7 @@ import BookCard, { BookCardProps } from "@/components/BookCard";
 import { GetTokenFromServer } from "@/lib/GetTokenFromServer";
 import { BACKEND_URL } from "@/lib/api";
 import { connection } from "next/server";
+import { notFound } from "next/navigation";
 
 // The books API is intentionally read at request time. This route may wait for
 // the Express API, rather than requiring it to be part of Next's static shell.
@@ -12,10 +13,25 @@ const AllBooksPage = async () => {
   await connection();
  
   const token = await GetTokenFromServer();
-  const res = await fetch(`${BACKEND_URL}/books`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  const books = await res.json();
+  if (!token) {
+    notFound();
+  }
+
+  let books: unknown;
+  try {
+    const res = await fetch(`${BACKEND_URL}/books`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      notFound();
+    }
+
+    books = await res.json();
+  } catch {
+    notFound();
+  }
+
   const bookList: BookCardProps["book"][] = Array.isArray(books) ? books : [];
   return (
     <>
